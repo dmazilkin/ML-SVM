@@ -3,11 +3,12 @@ import numpy as np
 from typing import Union, Tuple
 
 class MySVM:
-    def __init__(self, n_iter: int = 10, learning_rate: float = 0.001):
+    def __init__(self, n_iter: int = 10, learning_rate: float = 0.001, c: float = 1.0):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
         self.weights = None
         self.b = None
+        self.c = c
 
     def __str__(self):
         return f"MyLogReg class: n_iter={self.n_iter}, learning_rate={self.learning_rate}"
@@ -54,7 +55,7 @@ class MySVM:
         loss = np.sum(self.weights**2)
 
         if sum(wrong_ind):
-            loss += np.sum(1 - predict[wrong_ind]) / Y.shape[0]
+            loss += self.c * np.sum(1 - predict[wrong_ind]) / Y.shape[0]
         return loss
     
     def _calc_gradient(self, X: np.array, Y: np.array, Y_predict: np.array) -> Tuple[np.array, float]:
@@ -62,8 +63,8 @@ class MySVM:
         grad_bias = 0
         
         if  Y_predict < 1:
-            grad_weights -= X.T * Y
-            grad_bias -= Y
+            grad_weights -= self.c * X.T * Y
+            grad_bias -= self.c * Y
         return grad_weights, grad_bias
     
     def get_coef(self):

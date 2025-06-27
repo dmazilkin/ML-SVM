@@ -1,14 +1,17 @@
 import pandas as pd
 import numpy as np
+import random
 from typing import Union, Tuple
 
 class MySVM:
-    def __init__(self, n_iter: int = 10, learning_rate: float = 0.001, c: float = 1.0):
+    def __init__(self, n_iter: int = 10, learning_rate: float = 0.001, c: float = 1.0, sgd_sample: Union[float, int, None] = None, random_state: int = 42):
         self.n_iter = n_iter
         self.learning_rate = learning_rate
         self.weights = None
         self.b = None
         self.c = c
+        self.random_state = random_state
+        self.sgd_sample = sgd_sample
 
     def __str__(self):
         return f"MyLogReg class: n_iter={self.n_iter}, learning_rate={self.learning_rate}"
@@ -17,14 +20,25 @@ class MySVM:
         Y = self._preprocess_labels(Y_input)
         X = self._preprocess_features(X_input)
         self.weights = np.ones((X_input.shape[1], 1))
-        samples_count = Y.shape[0]
         self.b = 1.0
         iter = 0
+
+        samples_count = Y.shape[0]
+        if self.sgd_sample is not None:
+            random.seed(self.random_state)
+            samples_count = round(self.sgd_sample * Y.shape[0]) if isinstance(self.sgd_sample, float) else self.sgd_sample
         
-        while iter < self.n_iter:            
+        while iter < self.n_iter:
+            X_batch = X
+            Y_batch = Y
+            if self.sgd_sample is not None:
+                samples = random.sample(range(Y.shape[0]), samples_count)
+                X_batch = X[samples]
+                Y_batch = Y[samples]
+                
             for i in range(samples_count):
-                X_i = np.array([X[i, :]])
-                Y_i = float(Y[i])
+                X_i = np.array([X_batch[i, :]])
+                Y_i = float(Y_batch[i])
                 Y_predict = float(self._predict(X_i, Y_i))
                 
                 gradient_weights, gradient_bias = self._calc_gradient(X_i, Y_i, Y_predict)

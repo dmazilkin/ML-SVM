@@ -18,7 +18,7 @@ def create_data() -> Tuple[pd.DataFrame, pd.Series]:
 def main():
     X, Y = create_data()
     
-    model = MySVM(n_iter=10)
+    model = MySVM(n_iter=100, sgd_sample=1.0)
     model.fit(X, Y, verbose=True)
     Y_predicted = model.predict(X)
     
